@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Stratum Venture Intelligence</title>
+  <link rel="icon" type="image/png" href="origin-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-dark: #07080a;
+      --bg-card: rgba(18, 20, 26, 0.75);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --accent-crimson: #ef4444;
+      --accent-gold: #c29b62;
+      --text-main: #f1f3f7;
+      --text-muted: #8e95a5;
+      --text-dim: #5c6270;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.7;
+      padding: 0;
+      margin: 0;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(239, 68, 68, 0.08) 0%, transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(194, 155, 98, 0.05) 0%, transparent 50%);
+      min-height: 100vh;
+    }
+    .nav-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7, 8, 10, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-card);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+    .brand-name {
+      font-family: 'Cinzel', serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #fff;
+    }
+    .brand-badge {
+      font-size: 11px;
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      padding: 2px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 24px 100px 24px;
+    }
+    .doc-hero {
+      margin-bottom: 48px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border-card);
+    }
+    .doc-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-gold);
+      margin-bottom: 12px;
+    }
+    .doc-title {
+      font-family: 'Cinzel', serif;
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+      margin-bottom: 14px;
+      line-height: 1.25;
+    }
+    .doc-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .content-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(20px);
+    }
+    h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      color: #ffffff;
+      margin-top: 36px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-left: 3px solid var(--accent-crimson);
+      padding-left: 12px;
+    }
+    h2:first-of-type {
+      margin-top: 0;
+    }
+    p, ul {
+      color: #c5cbd8;
+      font-size: 15px;
+      margin-bottom: 18px;
+    }
+    ul {
+      padding-left: 24px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    strong {
+      color: #ffffff;
+    }
+    .callout-box {
+      background: rgba(239, 68, 68, 0.06);
+      border: 1px solid rgba(239, 68, 68, 0.22);
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin: 24px 0;
+    }
+    .callout-title {
+      font-weight: 600;
+      color: #f87171;
+      font-size: 14px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .contact-box {
+      background: rgba(194, 155, 98, 0.08);
+      border: 1px solid rgba(194, 155, 98, 0.25);
+      border-radius: 12px;
+      padding: 22px;
+      margin-top: 36px;
+    }
+    .contact-box a {
+      color: #f6c888;
+      text-decoration: underline;
+    }
+    .footer {
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--text-dim);
+      font-size: 13px;
+      border-top: 1px solid var(--border-card);
+      margin-top: 60px;
+    }
+    .footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      margin: 0 10px;
+    }
+    .footer a:hover {
+      color: #fff;
+    }
+    @media (max-width: 640px) {
+      .content-card {
+        padding: 24px 18px;
+      }
+      .doc-title {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav-header">
+    <a href="index.html" class="brand-group">
+      <img src="origin-icon.png" alt="Stratum Logo" class="brand-icon" />
+      <span class="brand-name">Stratum</span>
+      <span class="brand-badge">Venture Intelligence</span>
+    </a>
+    <a href="index.html" class="back-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Platform
+    </a>
+  </header>
+
+  <main class="container">
+    <div class="doc-hero">
+      <div class="doc-tag">LEGAL & DATA COMPLIANCE</div>
+      <h1 class="doc-title">Privacy Policy</h1>
+      <div class="doc-meta">
+        <span>Effective Date: September 25, 2026</span>
+        <span>•</span>
+        <span>Stratum Venture Intelligence Platform</span>
+      </div>
+    </div>
+
+    <div class="content-card">
+      <h2>1. Introduction & Overview</h2>
+      <p>
+        Stratum Venture Intelligence ("Stratum", "Origin", "we", "our", or "us") provides an institutional-grade strategic evaluation and diagnostic system for startup founders, investors, and venture strategists. We are deeply committed to respecting your privacy, protecting your proprietary business hypotheses, and safeguarding any personal data you entrust to us.
+      </p>
+      <p>
+        This Privacy Policy explains how information is collected, used, protected, and handled when you use the Stratum Venture Intelligence web application and associated services (the "Service").
+      </p>
+
+      <h2>2. Information We Collect</h2>
+      <p>We collect only the minimum information necessary to authenticate your identity, persist your venture evaluation workspaces, and deliver high-precision strategic diagnostics:</p>
+      <ul>
+        <li>
+          <strong>Google OAuth 2.0 Account Data:</strong> When you choose to authenticate via Google Identity Services, we receive and verify your basic public profile information provided by Google, including your <em>Full Name</em>, <em>Email Address</em>, and <em>Profile Picture URL</em>.
+        </li>
+        <li>
+          <strong>Venture Strategy & Diagnostic Data:</strong> Any venture hypotheses, problem statements, customer descriptions, pitch deck text, answers to strategic multiple-choice diagnostics (MCQs), and parameter inputs you enter into the platform.
+        </li>
+        <li>
+          <strong>Session & Workspace History:</strong> Chat transcripts, strategic memos, sensitivity parameters, and 6-Pillar business architecture evaluations that you save to your workspace.
+        </li>
+        <li>
+          <strong>Technical Logs:</strong> Minimal technical information such as browser user-agent, session cookies, and request timestamps required to maintain session integrity, detect abusive activity, and enforce rate limits.
+        </li>
+      </ul>
+
+      <div class="callout-box">
+        <div class="callout-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          Google API Services User Data Policy Compliance
+        </div>
+        <p style="margin-bottom:0; font-size:14px; color:#e2e8f0;">
+          Stratum's use and transfer to any other app of information received from Google APIs adheres to the 
+          <strong>Google API Services User Data Policy</strong>, including the <strong>Limited Use</strong> requirements. We will never use your Google user data for advertising, nor do we sell or distribute your Google account information to data brokers or third parties.
+        </p>
+      </div>
+
+      <h2>3. How We Use Your Information</h2>
+      <p>All information collected is used strictly for the operational functionality of the platform:</p>
+      <ul>
+        <li>Authenticating you securely and maintaining your active sessions.</li>
+        <li>Generating AI-driven venture capital evaluations, market size forecasts (TAM/SAM/SOM), unit economics projections, and defensibility moat scores.</li>
+        <li>Storing and restoring your pinned and recent chat sessions, strategic dossiers, and customized pillar metrics.</li>
+        <li>Preventing unauthorized access, fraudulent use, and system instability.</li>
+      </ul>
+
+      <h2>4. Non-Disclosure of Proprietary Venture Concepts</h2>
+      <p>
+        We treat all user-submitted startup concepts, confidential business models, and financial assumptions with utmost confidentiality. We do <strong>not</strong> sell, rent, license, or monetize your venture data. Your confidential inputs are processed through secure inference APIs solely to return real-time strategic analysis to your active session.
+      </p>
+
+      <h2>5. Cookies & Local Storage</h2>
+      <p>
+        The Service uses secure, encrypted HTTP session cookies (`stratum_session`) and browser local storage solely to keep you signed in and preserve interface preferences (such as audio/video playback state and sidebar layout). We do not use third-party cross-site tracking cookies.
+      </p>
+
+      <h2>6. Data Security & Storage</h2>
+      <p>
+        We employ robust industry-standard safeguards, including TLS/SSL encryption for data in transit, token-based session verification, and atomic file-backed storage for account records. While no method of digital transmission or storage is 100% impenetrable, we continually audit our security controls to prevent unauthorized access or disclosure.
+      </p>
+
+      <h2>7. Your Rights & Data Deletion</h2>
+      <p>
+        You maintain full sovereignty over your data. You may delete individual chat sessions at any time using the delete button in the workspace sidebar. To request complete deletion of your account, email profile, and all associated venture analyses from our database, simply contact us at the address below. Requests are processed within 48 business hours.
+      </p>
+
+      <div class="contact-box">
+        <h3 style="font-family:'Cinzel',serif; font-size:16px; color:#f6c888; margin-bottom:8px;">Contact & Privacy Inquiries</h3>
+        <p style="font-size:14px; margin-bottom:4px;">
+          For any questions regarding this Privacy Policy or to request immediate data deletion, please contact:
+        </p>
+        <p style="font-size:14px; font-weight:600; margin-bottom:0;">
+          Aneesh Poddar • Stratum Venture Intelligence<br />
+          Email: <a href="mailto:aneeshkpoddar@gmail.com">aneeshkpoddar@gmail.com</a>
+        </p>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>© 2026 Stratum Venture Intelligence. All rights reserved.</p>
+      <p style="margin-top:8px;">
+        <a href="index.html">Home</a>
+        <a href="terms.html">Terms of Service</a>
+        <a href="privacy.html">Privacy Policy</a>
+      </p>
+    </footer>
+  </main>
+</body>
+</html>

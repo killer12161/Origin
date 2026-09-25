@@ -1,0 +1,19 @@
+{
+  "name": "stratum-venture-intelligence",
+  "version": "1.0.0",
+  "description": "Institutional-Grade Venture Capital Strategic Evaluator and AI Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "venture-capital",
+    "startup-evaluator",
+    "strategic-intelligence",
+    "nvidia-nim",
+    "nemotron"
+  ],
+  "author": "Aneesh Poddar",
+  "license": "MIT"
+}

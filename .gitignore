@@ -1,0 +1,27 @@
+# Secrets & Environment Variables (CRITICAL)
+.env
+*.env
+.env.*
+
+# Local Database & User Sessions
+data/
+*.sqlite
+*.db
+*.tmp
+
+# Redundant Video Media Files (Keep only the active the-crown-of-thorns-moewalls-com.mp4)
+the-crown-of-thorns-moewalls-com.original.mp4
+the-crown-of-thorns-720p.mp4
+the-crown-of-thorns-opt.mp4
+the-crown-of-thorns-smooth.mp4
+
+# Duplicate Image Assets
+e7038450-3c82-4ed5-a970-bdbb97fe2fa0.png
+
+# Node / Dependencies
+node_modules/
+npm-debug.log*
+
+# System & OS Files
+.DS_Store
+Thumbs.db
