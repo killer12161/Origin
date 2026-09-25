@@ -26,7 +26,7 @@ For Google Cloud Console OAuth 2.0 Client & Brand Verification:
 - **Application Privacy Policy:** `https://killer12161.github.io/stratum-venture-intelligence/privacy.html`
 - **Application Terms of Service:** `https://killer12161.github.io/stratum-venture-intelligence/terms.html`
 - **Authorized Domain:** `github.io`
-- **Developer / Support Contact:** `aneeshkpoddar@gmail.com`
+- **Developer / Support Contact:** `aneeshpoddar63@gmail.com`
 
 ---
 
