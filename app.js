@@ -83,29 +83,50 @@ document.addEventListener('click', (e) => {
 // AUTH & GOOGLE IDENTITY SERVICES
 // ============================================================================
 
+// Google OAuth Client Configuration
+const GOOGLE_CLIENT_ID = '1035905230106-a6jqoj7ihd3qrcemufi8j342n2olssb0.apps.googleusercontent.com';
+
 async function initAuthAndChats() {
+  // 1. Immediately initialize Google Client so GSI is ALWAYS active and ready
+  setupGoogleClient(GOOGLE_CLIENT_ID);
+
+  // 2. Check local session cache first
   try {
-    // 1. Check existing session
-    const meResp = await fetch(`${API_BASE}/api/auth/me`);
-    const meData = await meResp.json();
-    if (meData.authenticated && meData.user) {
-      currentUser = meData.user;
+    const cachedUser = localStorage.getItem('origin_user');
+    if (cachedUser) {
+      currentUser = JSON.parse(cachedUser);
       renderUserProfile(currentUser);
     } else {
       renderLoggedOutState();
     }
+  } catch (e) {
+    renderLoggedOutState();
+  }
 
-    // 2. Fetch Google Client ID from backend
-    const cfgResp = await fetch(`${API_BASE}/api/config`);
-    const cfgData = await cfgResp.json();
-    if (cfgData.googleClientId) {
-      setupGoogleClient(cfgData.googleClientId);
+  // 3. Verify active session with backend if online
+  try {
+    const meResp = await fetch(`${API_BASE}/api/auth/me`);
+    if (meResp.ok) {
+      const meData = await meResp.json();
+      if (meData.authenticated && meData.user) {
+        currentUser = meData.user;
+        localStorage.setItem('origin_user', JSON.stringify(currentUser));
+        renderUserProfile(currentUser);
+      } else if (!localStorage.getItem('origin_user')) {
+        renderLoggedOutState();
+      }
     }
+  } catch (err) {
+    if (!currentUser) {
+      renderLoggedOutState();
+    }
+  }
 
-    // 3. Load chats
+  // 4. Try loading chats
+  try {
     await loadUserChats();
   } catch (err) {
-    console.error('Error initializing auth and chats:', err);
+    console.warn('Could not sync remote chats:', err);
   }
 }
 
@@ -132,7 +153,7 @@ function renderGoogleSignInButton() {
   if (!authContainer) return;
 
   authContainer.innerHTML = `
-    <button class="google-signin-btn" onclick="promptGoogleLogin()">
+    <button class="google-signin-btn" id="googleSignInBtn" onclick="promptGoogleLogin()" title="Sign in with your Google account">
       <svg viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -169,22 +190,53 @@ function promptGoogleLogin() {
   }
 }
 
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+    return JSON.parse(jsonPayload);
+  } catch(e) {
+    return null;
+  }
+}
+
 async function handleGoogleCredentialResponse(response) {
   try {
     showToast('Authenticating with Origin...');
-    const res = await fetch(`${API_BASE}/api/auth/google`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential: response.credential })
-    });
-    const data = await res.json();
-    if (data.ok && data.user) {
-      currentUser = data.user;
+
+    // 1. Instantly decode Google profile client-side
+    const payload = parseJwt(response.credential);
+    if (payload && payload.email) {
+      currentUser = {
+        name: payload.name || 'Origin Strategist',
+        email: payload.email,
+        picture: payload.picture || '',
+        googleId: payload.sub
+      };
+      localStorage.setItem('origin_user', JSON.stringify(currentUser));
       renderUserProfile(currentUser);
       showToast(`Welcome, ${currentUser.name}!`);
-      await loadUserChats();
-    } else {
-      showToast(`Sign in error: ${data.error || 'Failed'}`);
+    }
+
+    // 2. Sync session with backend if reachable
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok && data.user) {
+          currentUser = data.user;
+          localStorage.setItem('origin_user', JSON.stringify(currentUser));
+          renderUserProfile(currentUser);
+          await loadUserChats();
+        }
+      }
+    } catch (netErr) {
+      console.log('Backend sync skipped, running in client mode:', netErr);
     }
   } catch (err) {
     console.error('Google auth error:', err);
@@ -229,13 +281,16 @@ function toggleProfileDropdown(e) {
 
 async function handleLogout() {
   try {
-    await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST' });
     currentUser = null;
+    localStorage.removeItem('origin_user');
     const popover = document.getElementById('userMenuPopover');
     if (popover) popover.style.display = 'none';
     renderGoogleSignInButton();
     showToast('Signed out of Origin');
     startNewChat();
+    try {
+      await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST' });
+    } catch (e) {}
     await loadUserChats();
   } catch (err) {
     console.error('Logout error:', err);
