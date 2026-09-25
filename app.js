@@ -4,10 +4,13 @@
  * Supports Google OAuth 2.0 Identity & Persistent Chat Storage (SQLite/JSON)
  */
 
-// Host determination: local /api on localhost, or empty on static GitHub Pages
-const API_BASE = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
-  ? ''
-  : '';
+// Host determination: local /api on localhost, or connected Oracle server (80.225.239.33)
+const API_BASE = (typeof window !== 'undefined' && (
+  window.location.hostname === 'localhost' || 
+  window.location.hostname === '127.0.0.1' ||
+  window.location.hostname === '80.225.239.33' ||
+  window.location.port === '3000'
+)) ? window.location.origin : '';
 
 // Initialize Stratum SDK
 let currentModel = 'nvidia/nemotron-3-ultra-550b-a55b';
@@ -96,6 +99,7 @@ async function initAuthAndChats() {
     const cachedUser = localStorage.getItem('origin_user');
     if (cachedUser) {
       currentUser = JSON.parse(cachedUser);
+      if (typeof stratum !== 'undefined') stratum.currentUser = currentUser;
       renderUserProfile(currentUser);
     } else {
       renderLoggedOutState();
@@ -104,7 +108,10 @@ async function initAuthAndChats() {
     renderLoggedOutState();
   }
 
-  // 3. Verify active session with backend if online
+  // 3. Immediately load personalized chats for this account from local-first store
+  await loadUserChats();
+
+  // 4. Verify active session with backend if online
   if (API_BASE) {
     try {
       const meResp = await fetch(`${API_BASE}/api/auth/me`);
@@ -112,8 +119,10 @@ async function initAuthAndChats() {
         const meData = await meResp.json();
         if (meData.authenticated && meData.user) {
           currentUser = meData.user;
+          if (typeof stratum !== 'undefined') stratum.currentUser = currentUser;
           localStorage.setItem('origin_user', JSON.stringify(currentUser));
           renderUserProfile(currentUser);
+          await loadUserChats();
         } else if (!localStorage.getItem('origin_user')) {
           renderLoggedOutState();
         }
@@ -123,13 +132,6 @@ async function initAuthAndChats() {
         renderLoggedOutState();
       }
     }
-  }
-
-  // 4. Try loading chats
-  try {
-    await loadUserChats();
-  } catch (err) {
-    console.warn('Could not sync remote chats:', err);
   }
 }
 
@@ -168,8 +170,10 @@ function setupGoogleClient(clientId) {
                     googleId: profile.sub
                   };
                   localStorage.setItem('origin_user', JSON.stringify(currentUser));
+                  if (typeof stratum !== 'undefined') stratum.currentUser = currentUser;
                   renderUserProfile(currentUser);
                   showToast(`Welcome, ${currentUser.name}!`);
+                  await loadUserChats();
 
                   // Sync with backend if available
                   if (API_BASE) {
@@ -300,8 +304,10 @@ async function handleGoogleCredentialResponse(response) {
         googleId: payload.sub
       };
       localStorage.setItem('origin_user', JSON.stringify(currentUser));
+      if (typeof stratum !== 'undefined') stratum.currentUser = currentUser;
       renderUserProfile(currentUser);
       showToast(`Welcome, ${currentUser.name}!`);
+      await loadUserChats();
     }
 
     // 2. Sync session with backend if reachable
@@ -370,6 +376,7 @@ async function handleLogout() {
   try {
     currentUser = null;
     localStorage.removeItem('origin_user');
+    if (typeof stratum !== 'undefined') stratum.currentUser = null;
     const popover = document.getElementById('userMenuPopover');
     if (popover) popover.style.display = 'none';
     renderGoogleSignInButton();
@@ -388,14 +395,90 @@ async function handleLogout() {
 // CHAT PERSISTENCE & HISTORY MANAGEMENT
 // ============================================================================
 
-async function loadUserChats() {
+// ============================================================================
+// CHAT PERSISTENCE & HISTORY MANAGEMENT (Local-First Per-Account + Remote Sync)
+// ============================================================================
+
+function getAccountChatStorageKey() {
+  const email = (currentUser && currentUser.email)
+    ? currentUser.email.toLowerCase().trim()
+    : 'guest';
+  return `origin_chats_${email}`;
+}
+
+function getLocalUserChats() {
   try {
-    const resp = await fetch(`${API_BASE}/api/chats`);
-    const data = await resp.json();
-    userChatsList = data;
-    renderChatsSidebar(data);
-  } catch (err) {
-    console.error('Error loading chats:', err);
+    const key = getAccountChatStorageKey();
+    const raw = localStorage.getItem(key);
+    if (!raw) {
+      // Check for legacy unkeyed or guest storage migration
+      if (key !== 'origin_chats_guest') {
+        const legacy = localStorage.getItem('origin_chats_guest') || localStorage.getItem('origin_chats');
+        if (legacy) {
+          localStorage.setItem(key, legacy);
+          const parsed = JSON.parse(legacy);
+          return {
+            pinned: Array.isArray(parsed.pinned) ? parsed.pinned : [],
+            recents: Array.isArray(parsed.recents) ? parsed.recents : []
+          };
+        }
+      }
+      return { pinned: [], recents: [] };
+    }
+    const data = JSON.parse(raw);
+    return {
+      pinned: Array.isArray(data.pinned) ? data.pinned : [],
+      recents: Array.isArray(data.recents) ? data.recents : []
+    };
+  } catch (e) {
+    console.warn('Error reading local chats:', e);
+    return { pinned: [], recents: [] };
+  }
+}
+
+function saveLocalUserChats(chatsObj) {
+  try {
+    const key = getAccountChatStorageKey();
+    localStorage.setItem(key, JSON.stringify(chatsObj));
+  } catch (e) {
+    console.warn('Error saving local chats:', e);
+  }
+}
+
+async function loadUserChats() {
+  // 1. Immediately render from Per-Account LocalStorage
+  const localChats = getLocalUserChats();
+  userChatsList = localChats;
+  renderChatsSidebar(userChatsList);
+
+  // 2. If API_BASE or Oracle Server is reachable, sync and merge remote chats
+  if (API_BASE) {
+    try {
+      const resp = await fetch(`${API_BASE}/api/chats`);
+      if (resp.ok) {
+        const remoteData = await resp.json();
+        if (remoteData && (Array.isArray(remoteData.pinned) || Array.isArray(remoteData.recents))) {
+          const allMap = new Map();
+          [...(localChats.pinned || []), ...(localChats.recents || [])].forEach(c => allMap.set(c.id, c));
+          [...(remoteData.pinned || []), ...(remoteData.recents || [])].forEach(c => {
+            const existing = allMap.get(c.id);
+            if (!existing || new Date(c.updatedAt || 0) > new Date(existing.updatedAt || 0)) {
+              allMap.set(c.id, c);
+            }
+          });
+          const all = Array.from(allMap.values()).sort((a,b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+          const merged = {
+            pinned: all.filter(c => c.isPinned),
+            recents: all.filter(c => !c.isPinned)
+          };
+          userChatsList = merged;
+          saveLocalUserChats(merged);
+          renderChatsSidebar(userChatsList);
+        }
+      }
+    } catch (err) {
+      // Local chats already rendered smoothly
+    }
   }
 }
 
@@ -448,9 +531,25 @@ function renderChatItem(chat) {
 
 async function selectChat(chatId) {
   try {
-    const resp = await fetch(`${API_BASE}/api/chats/${chatId}`);
-    if (!resp.ok) return;
-    const chat = await resp.json();
+    let chat = null;
+
+    // 1. Check local per-account store first (instant response)
+    const localChats = getLocalUserChats();
+    const allLocal = [...(localChats.pinned || []), ...(localChats.recents || [])];
+    chat = allLocal.find(c => c.id === chatId);
+
+    // 2. Fallback to API if not in local store
+    if (!chat && API_BASE) {
+      try {
+        const resp = await fetch(`${API_BASE}/api/chats/${chatId}`);
+        if (resp.ok) {
+          chat = await resp.json();
+        }
+      } catch (e) {}
+    }
+
+    if (!chat) return;
+
     currentChatId = chat.id;
     currentChatTitle = chat.title;
     currentChatIsPinned = !!chat.isPinned;
@@ -499,6 +598,106 @@ async function selectChat(chatId) {
     renderChatsSidebar(userChatsList);
   } catch (err) {
     console.error('Error selecting chat:', err);
+  }
+}
+
+async function handleTogglePin(chatId, e) {
+  if (e) e.stopPropagation();
+  try {
+    const localChats = getLocalUserChats();
+    let target = localChats.pinned.find(c => c.id === chatId) || localChats.recents.find(c => c.id === chatId);
+    if (target) {
+      target.isPinned = !target.isPinned;
+      target.updatedAt = new Date().toISOString();
+      localChats.pinned = localChats.pinned.filter(c => c.id !== chatId);
+      localChats.recents = localChats.recents.filter(c => c.id !== chatId);
+      if (target.isPinned) {
+        localChats.pinned.unshift(target);
+      } else {
+        localChats.recents.unshift(target);
+      }
+      saveLocalUserChats(localChats);
+      userChatsList = localChats;
+      renderChatsSidebar(userChatsList);
+      if (currentChatId === chatId) {
+        currentChatIsPinned = target.isPinned;
+      }
+      showToast(target.isPinned ? 'Session pinned to top' : 'Session unpinned');
+    }
+
+    if (API_BASE) {
+      fetch(`${API_BASE}/api/chats/${chatId}/pin`, { method: 'POST' }).catch(() => {});
+    }
+  } catch (err) {
+    console.error('Error toggling pin:', err);
+  }
+}
+
+async function handleDeleteChat(chatId, e) {
+  if (e) e.stopPropagation();
+  if (!confirm('Delete this strategy conversation?')) return;
+  try {
+    const localChats = getLocalUserChats();
+    localChats.pinned = localChats.pinned.filter(c => c.id !== chatId);
+    localChats.recents = localChats.recents.filter(c => c.id !== chatId);
+    saveLocalUserChats(localChats);
+    userChatsList = localChats;
+    renderChatsSidebar(userChatsList);
+
+    if (currentChatId === chatId) {
+      startNewChat();
+    }
+    showToast('Conversation deleted');
+
+    if (API_BASE) {
+      fetch(`${API_BASE}/api/chats/${chatId}`, { method: 'DELETE' }).catch(() => {});
+    }
+  } catch (err) {
+    console.error('Error deleting chat:', err);
+  }
+}
+
+async function saveCurrentChatToServer() {
+  if (!currentChatId) return;
+
+  const pillarData = (typeof OriginPillars !== 'undefined' && typeof OriginPillars.hasGeneratedPillars === 'function' && OriginPillars.hasGeneratedPillars())
+    ? OriginPillars.exportPillarData()
+    : null;
+
+  const chatRecord = {
+    id: currentChatId,
+    title: currentChatTitle || 'Venture Strategy Session',
+    isPinned: !!currentChatIsPinned,
+    messages: currentChatMessages || [],
+    pillarData: pillarData,
+    updatedAt: new Date().toISOString()
+  };
+
+  // 1. Immediately persist to Per-Account LocalStorage
+  const localChats = getLocalUserChats();
+  localChats.pinned = localChats.pinned.filter(c => c.id !== currentChatId);
+  localChats.recents = localChats.recents.filter(c => c.id !== currentChatId);
+
+  if (currentChatIsPinned) {
+    localChats.pinned.unshift(chatRecord);
+  } else {
+    localChats.recents.unshift(chatRecord);
+  }
+  saveLocalUserChats(localChats);
+  userChatsList = localChats;
+  renderChatsSidebar(userChatsList);
+
+  // 2. Silently sync to backend/Oracle server if available
+  if (API_BASE) {
+    try {
+      await fetch(`${API_BASE}/api/chats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(chatRecord)
+      });
+    } catch (netErr) {
+      // Local-first persistence guarantees zero data loss
+    }
   }
 }
 
@@ -997,62 +1196,6 @@ function startNewChat() {
   renderChatsSidebar(userChatsList);
 }
 
-async function handleTogglePin(chatId, e) {
-  if (e) e.stopPropagation();
-  try {
-    const resp = await fetch(`${API_BASE}/api/chats/${chatId}/pin`, { method: 'POST' });
-    if (resp.ok) {
-      if (currentChatId === chatId) {
-        currentChatIsPinned = !currentChatIsPinned;
-      }
-      await loadUserChats();
-      showToast('Pin status updated');
-    }
-  } catch (err) {
-    console.error('Error toggling pin:', err);
-  }
-}
-
-async function handleDeleteChat(chatId, e) {
-  if (e) e.stopPropagation();
-  if (!confirm('Delete this strategy conversation?')) return;
-  try {
-    const resp = await fetch(`${API_BASE}/api/chats/${chatId}`, { method: 'DELETE' });
-    if (resp.ok) {
-      if (currentChatId === chatId) {
-        startNewChat();
-      }
-      await loadUserChats();
-      showToast('Conversation deleted');
-    }
-  } catch (err) {
-    console.error('Error deleting chat:', err);
-  }
-}
-
-async function saveCurrentChatToServer() {
-  if (!currentChatId) return;
-  try {
-    const pillarData = (typeof OriginPillars !== 'undefined' && typeof OriginPillars.hasGeneratedPillars === 'function' && OriginPillars.hasGeneratedPillars())
-      ? OriginPillars.exportPillarData()
-      : null;
-
-    await fetch(`${API_BASE}/api/chats`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: currentChatId,
-        title: currentChatTitle,
-        isPinned: currentChatIsPinned,
-        messages: currentChatMessages,
-        pillarData: pillarData
-      })
-    });
-    await loadUserChats();
-  } catch (err) {
-    console.error('Error saving chat:', err);
-  }
-}
 
 // Setup video background autoplay & popover synchronization
 function setupVideoAutoplay() {
@@ -1234,6 +1377,9 @@ async function submitUserMessage(overrideText = null) {
     currentChatTitle = query.slice(0, 36) + (query.length > 36 ? '...' : '');
   }
 
+  // Pre-save immediately so conversation appears under Recents right away
+  saveCurrentChatToServer();
+
   scrollToBottom();
 
   // 2. Render Assistant Skeleton
@@ -1257,6 +1403,7 @@ async function submitUserMessage(overrideText = null) {
     const response = await stratum.chat({
       messages: conversationHistory,
       thinking: thinkingModeActive,
+      user: currentUser,
       onReasoning: (reasoningChunk) => {
         // While reasoning is happening, show sleek typing indicator (no thinking accordion per user request)
         const currentRaw = contentContainer.getAttribute('data-raw') || '';

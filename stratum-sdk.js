@@ -33,22 +33,22 @@
   const STRATUM_SYSTEM_PROMPT = `You are Origin — an elite Venture Strategist, Brand Architect, and Quantitative Venture Partner AI.
 You are strictly trained on the comprehensive methodologies from "Business Strategy Framework Research" and the "Origin Venture Intelligence Platform":
 
-CONVERSATIONAL, SIMPLIFIED & AGENTIC PROTOCOL:
-1. GREETING & INITIAL DISCOVERY:
-   - When the user first says "hello" or greets you, greet them warmly, concisely, and professionally as Origin.
-   - Invite them to describe the business or startup concept they are building.
+CONVERSATIONAL, SIMPLIFIED & TOKEN-EFFICIENT PROTOCOL:
+1. GREETING & CASUAL CONVERSATION:
+   - When the user first says "hello", "hi", "hey", or engages in casual greeting:
+     * Greet them warmly, concisely (under 40 words), and address them by their name if provided.
+     * Invite them to describe the business, product, or startup concept they are building.
+     * CRITICAL PROHIBITION: DO NOT output any \`\`\`origin-mcq code blocks or \`\`\`origin-pillars code blocks on simple greetings or conversational chat! Zero MCQs on greetings.
 
-2. CRITICAL SIMPLICITY & BACKGROUND CALCULATION RULES:
-   - ALL complex mathematical modeling, financial formulas, and 6-pillar calculations MUST happen purely in the background.
-   - The user must NEVER see raw JSON, data dumps, formula breakdowns, or headings like "Initial 6-Pillar Quantitative Baseline (Pre-Calibration)" in your visible message.
-   - In your visible text, write ONLY a simplified, friendly, and easy-to-understand response in plain English:
-     * Acknowledge their idea in 2-3 concise, encouraging sentences.
-     * Provide 2-3 brief, plain-English observations about their market opportunity.
-     * Tell the founder that you will calculate and unlock their 6 Core Strategy Blocks (Market Size, Customer Segments, Business Model, Unit Economics, USP & Moat, Branding) once they confirm their operational baseline.
-     * Invite them to tap the quick multiple-choice options below to calibrate their numbers.
+2. CONVERSATIONAL & STRATEGIC QUERIES:
+   - When the founder asks questions (e.g. "what is LTV:CAC?", "how do you work?", "who are you?", "explain moats"):
+     * Answer directly, concisely, and quantitatively.
+     * DO NOT output any \`\`\`origin-mcq code blocks on general questions.
 
-3. DIAGNOSTIC MCQ FORMAT (Rendered as Clickable Cards):
-   - Output the diagnostic questions strictly inside an \`\`\`origin-mcq code block so the platform renders them as clean interactive buttons:
+3. VENTURE CONCEPT INTAKE & DIAGNOSTIC:
+   - ONLY when the founder describes a specific business, startup, or product concept they are building:
+     * Acknowledge their idea in 1-2 concise, encouraging sentences.
+     * Output 3 diagnostic multiple-choice questions strictly inside an \`\`\`origin-mcq code block so the platform renders them as clean interactive buttons:
    \`\`\`origin-mcq
    {
      "title": "Venture Discovery Diagnostic: [Venture Name / Concept]",
@@ -83,16 +83,6 @@ CONVERSATIONAL, SIMPLIFIED & AGENTIC PROTOCOL:
            { "label": "Proprietary Data Moat & Network Effects", "value": "Data & Network Effects" },
            { "label": "Process Power & Proprietary Optimization", "value": "Process Power" }
          ]
-       },
-       {
-         "id": "q_stage",
-         "text": "What is your venture's current operational stage?",
-         "options": [
-           { "label": "Ideation & Problem Discovery (<10 customer interviews)", "value": "Ideation" },
-           { "label": "Prototype / Working Beta with Pilot Partners", "value": "Prototype / Beta" },
-           { "label": "Early Commercial Traction ($10k-$50k MRR)", "value": "Early Traction" },
-           { "label": "Scaling & Institutional Seed/Series A", "value": "Scaling" }
-         ]
        }
      ]
    }
@@ -122,6 +112,10 @@ CONVERSATIONAL, SIMPLIFIED & AGENTIC PROTOCOL:
    - Silently update the 6 pillars in the background using \`\`\`origin-pillars ... \`\`\` at the very end.
    - NEVER show raw JSON, formulas, spreadsheets, or pre-calibration headers in the visible text.
 
+6. TOKEN CONSERVATION PROTOCOL:
+   - Strict token economy: keep all messages high-density and eliminate unnecessary pleasantries or duplicated text.
+   - Never output duplicate code blocks.
+
 Never reference generic placeholder companies like "Apex AI". Every metric and name must be 100% specific to the user's venture.`;
 
   /**
@@ -130,6 +124,7 @@ Never reference generic placeholder companies like "Apex AI". Every metric and n
   class StratumAI {
     constructor(config = {}) {
       this.config = Object.assign({}, DEFAULT_CONFIG, config);
+      this.currentUser = config.user || config.currentUser || null;
       this.toolRegistry = new Map();
       this.ventureState = {
         name: '',
@@ -143,6 +138,14 @@ Never reference generic placeholder companies like "Apex AI". Every metric and n
         isDiagnosed: false
       };
       this._registerDefaultTools();
+    }
+
+    /**
+     * Set active user
+     */
+    setUser(user) {
+      this.currentUser = user;
+      return this;
     }
 
     /**
@@ -436,7 +439,8 @@ Never reference generic placeholder companies like "Apex AI". Every metric and n
      * Send chat request to NVIDIA NIM API with intelligent streaming & tool extraction
      * Automatically falls back to Client-Side Intelligence when offline or hosted on GitHub Pages
      */
-    async chat({ messages, onToken, onReasoning, enableTools = true, thinking = true }) {
+    async chat({ messages, onToken, onReasoning, enableTools = true, thinking = true, user = null }) {
+      if (user) this.currentUser = user;
       const lastUserMsg = messages[messages.length - 1]?.content || '';
       this.extractVentureParams(lastUserMsg);
 
@@ -551,6 +555,9 @@ Never reference generic placeholder companies like "Apex AI". Every metric and n
      */
     async _synthesizeClientVentureResponse(lastUserMsg, messages, onToken, onReasoning, thinking) {
       const lower = (lastUserMsg || '').toLowerCase();
+      const cleanMsg = lower.trim().replace(/[!?,.]/g, '');
+      const words = cleanMsg.split(/\s+/).filter(Boolean);
+
       this.extractVentureParams(lastUserMsg);
       const v = this.ventureState;
 
@@ -562,13 +569,57 @@ Never reference generic placeholder companies like "Apex AI". Every metric and n
         }
       }
 
-      // Check if this is an answer submission to the diagnostic questionnaire
+      // Personalized user name
+      const founderName = (this.currentUser && this.currentUser.name)
+        ? this.currentUser.name.split(' ')[0]
+        : ((typeof currentUser !== 'undefined' && currentUser && currentUser.name)
+            ? currentUser.name.split(' ')[0]
+            : (v.founderName || 'Founder'));
+
+      // 1. Diagnostic Answer Submission
       const isDiagnosticSubmission = (
         lower.includes('verified venture diagnostic answers') ||
         lower.includes('diagnostic answers') ||
         lower.includes('👉') ||
         lower.includes('target customer segment') ||
         lower.includes('monetization architecture')
+      );
+
+      // 2. Pure Greeting / Casual check (e.g. "hello", "hi", "hey", "good morning")
+      const greetingTokens = ['hello', 'hi', 'hey', 'greetings', 'morning', 'afternoon', 'evening', 'yo', 'sup', 'hola', 'test', 'howdy'];
+      const isPureGreeting = (
+        greetingTokens.includes(cleanMsg) ||
+        (words.length <= 4 && words.some(w => greetingTokens.includes(w)) && !lower.includes('building') && !lower.includes('startup') && !lower.includes('saas') && !lower.includes('platform') && !lower.includes('app'))
+      );
+
+      // 3. Help, Meta, or Capabilities check
+      const isHelpOrMeta = !isDiagnosticSubmission && !isPureGreeting && (
+        cleanMsg.startsWith('who are you') ||
+        cleanMsg.startsWith('what can you do') ||
+        cleanMsg.startsWith('what is origin') ||
+        cleanMsg.startsWith('how does this work') ||
+        cleanMsg === 'help'
+      );
+
+      // 4. Strategic Q&A without introducing a new startup concept
+      const hasVentureKeywords = (
+        lower.includes('building') ||
+        lower.includes('launching') ||
+        lower.includes('startup') ||
+        lower.includes('platform') ||
+        lower.includes('software') ||
+        lower.includes('saas') ||
+        lower.includes('marketplace') ||
+        lower.includes('firm') ||
+        lower.includes('company') ||
+        lower.includes('product') ||
+        lower.includes('tool') ||
+        lower.includes('service')
+      );
+
+      const isStrategyInquiry = !isDiagnosticSubmission && !isPureGreeting && !isHelpOrMeta && (
+        (cleanMsg.startsWith('what is') || cleanMsg.startsWith('how do') || cleanMsg.startsWith('explain') || cleanMsg.startsWith('tell me about') || cleanMsg.startsWith('why')) &&
+        !hasVentureKeywords
       );
 
       let fullText = '';
@@ -636,7 +687,55 @@ Your **6 Core Strategy Blocks** on the floating docks are now unlocked. Tap any 
   }
 }
 \`\`\``;
+      } else if (isPureGreeting) {
+        // Zero MCQs on greetings! Token-efficient, crisp, personalized
+        fullText = `Hello ${founderName}. Welcome to **Origin**. I am your quantitative venture strategist and brand architect.
+
+Tell me about the venture, product, or business concept you are building. Once you describe your core concept, we will model your bottom-up TAM, calibrate your unit economics, and formulate your competitive moats.`;
+      } else if (isHelpOrMeta) {
+        fullText = `I am **Origin** — an autonomous Venture Partner and Brand Architect.
+
+I help founders model, stress-test, and scale institutional venture foundations:
+- **Bottom-Up Market Sizing**: TAM, SAM, and SOM expansion models.
+- **Unit Economics**: CAC, LTV, Payback velocity, and Gross Margin expansion.
+- **Defensibility (Hamilton Helmer 7 Powers)**: Workflow switching costs, network effects, and counter-positioning.
+- **Brand Architecture**: Strategic category positioning and narrative doctoring.
+
+To begin strategizing, simply describe the startup or business concept you are building.`;
+      } else if (isStrategyInquiry) {
+        if (lower.includes('moat') || lower.includes('helmer') || lower.includes('7 powers')) {
+          fullText = `In venture strategy, durable defensibility relies on Hamilton Helmer's **7 Powers**:
+1. **Switching Costs**: Deep workflow integration making replacement painful.
+2. **Network Effects**: Value increases with each additional user or tenant.
+3. **Counter-Positioning**: A novel business model incumbents cannot copy without cannibalizing core revenue.
+4. **Scale Economies**: Declining unit costs at higher volume.
+5. **Brand**: Institutional trust and category resonance.
+6. **Cornered Resource**: Preferential access to scarce talent, IP, or data.
+7. **Process Power**: Complex organizational routines delivering superior speed or cost.
+
+Tell me about your venture concept to map which powers represent your primary strategic wedge.`;
+        } else if (lower.includes('ltv') || lower.includes('cac') || lower.includes('unit economic')) {
+          fullText = `Institutional venture unit economics center on capital efficiency:
+- **LTV:CAC Ratio**: Target **>= 3.5x** for enterprise software and high-growth technology.
+- **CAC Payback Period**: Target **< 12 months** (< 8 months for top decile capital efficiency).
+- **Net Dollar Retention (NDR)**: Target **> 125%** through seat expansion and usage consumption.
+- **Gross Margins**: Target **> 80%** for pure software to absorb customer acquisition costs.
+
+Describe your target customer and pricing model, and I will model your exact cohort payback curve.`;
+        } else if (lower.includes('tam') || lower.includes('market size')) {
+          fullText = `Origin calculates addressable market using a **deterministic bottom-up methodology**:
+- **TAM (Total Addressable Market)**: Total Target Accounts globally × Average Contract Value (ACV).
+- **SAM (Serviceable Addressable Market)**: Accounts reachable within current regulatory, technical, and geographic scope.
+- **SOM (Serviceable Obtainable Market)**: Realistic 3-year market capture bounded by sales capacity and marketing efficiency.
+
+Share your target ICP (customer segment) and anticipated contract value to generate your bottom-up sizing model.`;
+        } else {
+          fullText = `As your venture partner, I analyze strategy through verified quantitative frameworks.
+
+To analyze this directly in the context of your business, share what product, platform, or venture concept you are building. We will model your 6 Core Strategic Pillars and financial milestones.`;
+        }
       } else {
+        // User introduces or pitches their venture concept!
         const ventureTitle = v.name || (v.industry ? `${v.industry} Platform` : 'Venture Concept');
         const domainDesc = v.industry || 'high-growth technology';
 
@@ -685,60 +784,6 @@ To calibrate your **6 Core Strategy Blocks** (*Market Size, Customer Segments, B
       ]
     }
   ]
-}
-\`\`\`
-
-\`\`\`origin-pillars
-{
-  "market_size": {
-    "targetAccounts": 35000,
-    "acv": 48000,
-    "tamVal": 1.68,
-    "samVal": 520,
-    "somVal": 42,
-    "cagr": 23.8,
-    "analysis": "Initial baseline bottom-up TAM modeling. Awaiting diagnostic calibration."
-  },
-  "customer_segments": {
-    "enterprisePct": 55,
-    "midMarketPct": 35,
-    "smbPct": 10,
-    "primaryIcp": "Enterprise VP / Director of IT & Security",
-    "workaround": "Manual processes and legacy siloed tools",
-    "analysis": "Initial ICP segment mapping pending founder calibration."
-  },
-  "business_model": {
-    "subShare": 70,
-    "usageShare": 20,
-    "serviceShare": 10,
-    "pricingModel": "Hybrid Platform Subscription + Consumption",
-    "expansionTrigger": "Volume of Automated Workflows",
-    "analysis": "Initial monetization flywheel architecture."
-  },
-  "unit_economics": {
-    "cac": 9200,
-    "ltv": 45000,
-    "paybackMonths": 8.4,
-    "grossMargin": 83,
-    "netRetention": 126,
-    "analysis": "Initial capital efficiency baseline."
-  },
-  "usp_moat": {
-    "overallMoatScore": 84,
-    "switchingCosts": 90,
-    "counterPositioning": 82,
-    "networkEffects": 85,
-    "processPower": 80,
-    "analysis": "Initial defensibility matrix."
-  },
-  "branding": {
-    "archetype": "Institutional Guardian & Sovereign Architect",
-    "clarityScore": 90,
-    "differentiationScore": 87,
-    "positioningStatement": "Mission-critical strategic intelligence built for enterprise velocity.",
-    "tagline": "Sovereign Intelligence for Mission-Critical Enterprise Strategy",
-    "analysis": "Authoritative brand architecture conveying mathematical rigor."
-  }
 }
 \`\`\``;
       }
