@@ -73,7 +73,8 @@
       <div class="sidebar-footer" id="sidebarFooter">
         <!-- Auth Container (Switches between Google Sign-in and User Profile Tile) -->
         <div id="authContainer">
-          <button class="google-signin-btn" id="googleSignInBtn" onclick="promptGoogleLogin()">
+          <div id="gsiButtonContainer" style="display:flex; justify-content:center; margin-bottom:4px;"></div>
+          <button class="google-signin-btn" id="googleSignInBtn" onclick="promptGoogleLogin()" title="Sign in with your Google account">
             <svg viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -82,14 +83,13 @@
             </svg>
             <span>Sign in with Google</span>
           </button>
-          <div id="hiddenGsiBtn" style="position:absolute; opacity:0; pointer-events:none; height:0; width:0; overflow:hidden;"></div>
         </div>
 
         <!-- User Dropdown Menu Popover (Sign out, etc) -->
         <div class="user-menu-popover" id="userMenuPopover" style="display:none;">
           <div class="user-menu-header">
-            <span class="menu-user-name" id="popoverUserName">Aneesh Poddar</span>
-            <span class="menu-user-email" id="popoverUserEmail">aneeshpoddar63@gmail.com</span>
+            <span class="menu-user-name" id="popoverUserName">Origin Strategist</span>
+            <span class="menu-user-email" id="popoverUserEmail">Signed in</span>
           </div>
           <div class="user-menu-divider"></div>
           <button class="user-menu-item" id="popoverVideoToggleBtn" onclick="toggleVideoPlaybackFromPopover()">

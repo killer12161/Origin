@@ -4,10 +4,10 @@
  * Supports Google OAuth 2.0 Identity & Persistent Chat Storage (SQLite/JSON)
  */
 
-// Host determination: automatically route to Oracle VM when on GitHub Pages, or local /api on localhost
+// Host determination: local /api on localhost, or empty on static GitHub Pages
 const API_BASE = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
   ? ''
-  : 'http://80.225.239.33:3000';
+  : '';
 
 // Initialize Stratum SDK
 let currentModel = 'nvidia/nemotron-3-ultra-550b-a55b';
@@ -85,6 +85,7 @@ document.addEventListener('click', (e) => {
 
 // Google OAuth Client Configuration
 const GOOGLE_CLIENT_ID = '1035905230106-a6jqoj7ihd3qrcemufi8j342n2olssb0.apps.googleusercontent.com';
+let googleTokenClient = null;
 
 async function initAuthAndChats() {
   // 1. Immediately initialize Google Client so GSI is ALWAYS active and ready
@@ -104,21 +105,23 @@ async function initAuthAndChats() {
   }
 
   // 3. Verify active session with backend if online
-  try {
-    const meResp = await fetch(`${API_BASE}/api/auth/me`);
-    if (meResp.ok) {
-      const meData = await meResp.json();
-      if (meData.authenticated && meData.user) {
-        currentUser = meData.user;
-        localStorage.setItem('origin_user', JSON.stringify(currentUser));
-        renderUserProfile(currentUser);
-      } else if (!localStorage.getItem('origin_user')) {
+  if (API_BASE) {
+    try {
+      const meResp = await fetch(`${API_BASE}/api/auth/me`);
+      if (meResp.ok) {
+        const meData = await meResp.json();
+        if (meData.authenticated && meData.user) {
+          currentUser = meData.user;
+          localStorage.setItem('origin_user', JSON.stringify(currentUser));
+          renderUserProfile(currentUser);
+        } else if (!localStorage.getItem('origin_user')) {
+          renderLoggedOutState();
+        }
+      }
+    } catch (err) {
+      if (!currentUser) {
         renderLoggedOutState();
       }
-    }
-  } catch (err) {
-    if (!currentUser) {
-      renderLoggedOutState();
     }
   }
 
@@ -131,21 +134,86 @@ async function initAuthAndChats() {
 }
 
 function setupGoogleClient(clientId) {
-  const checkGsi = () => {
-    if (window.google && window.google.accounts && window.google.accounts.id) {
-      google.accounts.id.initialize({
-        client_id: clientId,
-        callback: handleGoogleCredentialResponse,
-        auto_select: false
-      });
+  let attempts = 0;
+  const initGsi = () => {
+    attempts++;
+    if (window.google && window.google.accounts) {
+      // 1. Initialize Google OAuth2 Token Client (powers custom button popup!)
+      if (window.google.accounts.oauth2) {
+        try {
+          googleTokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: 'openid email profile',
+            callback: async (tokenResponse) => {
+              if (tokenResponse.error) {
+                console.warn('Google Sign-In Token Response:', tokenResponse);
+                if (tokenResponse.error === 'origin_mismatch' || tokenResponse.error === 'access_denied') {
+                  showToast('Google OAuth: Please verify origin is authorized in Google Cloud Console.');
+                } else {
+                  showToast('Google Sign-in: ' + (tokenResponse.error_description || tokenResponse.error));
+                }
+                return;
+              }
+              try {
+                showToast('Connecting Google account...');
+                const profileResp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                  headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                });
+                if (profileResp.ok) {
+                  const profile = await profileResp.json();
+                  currentUser = {
+                    name: profile.name || 'Origin Strategist',
+                    email: profile.email || 'aneeshpoddar63@gmail.com',
+                    picture: profile.picture || '',
+                    googleId: profile.sub
+                  };
+                  localStorage.setItem('origin_user', JSON.stringify(currentUser));
+                  renderUserProfile(currentUser);
+                  showToast(`Welcome, ${currentUser.name}!`);
+
+                  // Sync with backend if available
+                  if (API_BASE) {
+                    try {
+                      await fetch(`${API_BASE}/api/auth/google`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ accessToken: tokenResponse.access_token, user: currentUser })
+                      });
+                    } catch (e) {}
+                  }
+                }
+              } catch (profileErr) {
+                console.error('Failed fetching Google profile:', profileErr);
+                showToast('Could not load profile from Google');
+              }
+            }
+          });
+        } catch (err) {
+          console.warn('Could not initialize Google Token Client:', err);
+        }
+      }
+
+      // 2. Initialize Google Identity Services (One Tap + Official Button)
+      if (window.google.accounts.id) {
+        try {
+          google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleGoogleCredentialResponse,
+            auto_select: false
+          });
+        } catch(e) {
+          console.warn('GSI ID init error:', e);
+        }
+      }
+
       if (!currentUser) {
         renderGoogleSignInButton();
       }
-    } else {
-      setTimeout(checkGsi, 200);
+    } else if (attempts < 20) {
+      setTimeout(initGsi, 250);
     }
   };
-  checkGsi();
+  initGsi();
 }
 
 function renderGoogleSignInButton() {
@@ -153,6 +221,7 @@ function renderGoogleSignInButton() {
   if (!authContainer) return;
 
   authContainer.innerHTML = `
+    <div id="gsiButtonContainer" style="display:flex; justify-content:center; margin-bottom:4px;"></div>
     <button class="google-signin-btn" id="googleSignInBtn" onclick="promptGoogleLogin()" title="Sign in with your Google account">
       <svg viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -162,13 +231,27 @@ function renderGoogleSignInButton() {
       </svg>
       <span>Sign in with Google</span>
     </button>
-    <div id="hiddenGsiBtn" style="position:absolute; opacity:0; pointer-events:none; height:0; width:0; overflow:hidden;"></div>
   `;
 
+  // Render official GSI button if available
   if (window.google && window.google.accounts && window.google.accounts.id) {
-    const hidden = document.getElementById('hiddenGsiBtn');
-    if (hidden) {
-      google.accounts.id.renderButton(hidden, { theme: 'filled_black', size: 'medium' });
+    const container = document.getElementById('gsiButtonContainer');
+    if (container) {
+      try {
+        google.accounts.id.renderButton(container, {
+          type: 'standard',
+          theme: 'filled_black',
+          size: 'large',
+          shape: 'pill',
+          width: 220
+        });
+        const fb = document.getElementById('googleSignInBtn');
+        if (fb && container.children.length > 0) {
+          fb.style.display = 'none';
+        }
+      } catch (e) {
+        console.warn('GSI renderButton error:', e);
+      }
     }
   }
 }
@@ -178,11 +261,13 @@ function renderLoggedOutState() {
 }
 
 function promptGoogleLogin() {
-  if (window.google && window.google.accounts && window.google.accounts.id) {
+  if (googleTokenClient) {
+    // Official Google OAuth2 popup: directly requests access token via Google Account Chooser
+    googleTokenClient.requestAccessToken({ prompt: 'select_account' });
+  } else if (window.google && window.google.accounts && window.google.accounts.id) {
     google.accounts.id.prompt((notification) => {
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        const btn = document.querySelector('#hiddenGsiBtn div[role="button"]');
-        if (btn) btn.click();
+        showToast('Please check popup permissions or use the Google Sign-in button.');
       }
     });
   } else {
@@ -220,23 +305,25 @@ async function handleGoogleCredentialResponse(response) {
     }
 
     // 2. Sync session with backend if reachable
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: response.credential })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.ok && data.user) {
-          currentUser = data.user;
-          localStorage.setItem('origin_user', JSON.stringify(currentUser));
-          renderUserProfile(currentUser);
-          await loadUserChats();
+    if (API_BASE) {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/google`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential: response.credential })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok && data.user) {
+            currentUser = data.user;
+            localStorage.setItem('origin_user', JSON.stringify(currentUser));
+            renderUserProfile(currentUser);
+            await loadUserChats();
+          }
         }
+      } catch (netErr) {
+        console.log('Backend sync skipped, running in client mode:', netErr);
       }
-    } catch (netErr) {
-      console.log('Backend sync skipped, running in client mode:', netErr);
     }
   } catch (err) {
     console.error('Google auth error:', err);
