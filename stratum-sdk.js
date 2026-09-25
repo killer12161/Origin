@@ -578,15 +578,89 @@ Never reference placeholder companies like "Apex AI". Every metric and synthesis
         lower.includes('monetization architecture')
       );
 
-      // 2. Pure Greeting / Casual check (e.g. "hello", "hi", "hey", "good morning")
-      const greetingTokens = ['hello', 'hi', 'hey', 'greetings', 'morning', 'afternoon', 'evening', 'yo', 'sup', 'hola', 'test', 'howdy'];
-      const isPureGreeting = (
-        greetingTokens.includes(cleanMsg) ||
-        (words.length <= 4 && words.some(w => greetingTokens.includes(w)) && !lower.includes('building') && !lower.includes('startup') && !lower.includes('saas') && !lower.includes('platform') && !lower.includes('app'))
+      // 2. Venture Pitch Detection (Checks if user actually introduced a product/startup/concept)
+      const hasPitchIntent = (
+        lower.includes('i am making') ||
+        lower.includes("i'm making") ||
+        lower.includes('i am planning') ||
+        lower.includes("i'm planning") ||
+        lower.includes('i am building') ||
+        lower.includes("i'm building") ||
+        lower.includes('i am working on') ||
+        lower.includes("i'm working on") ||
+        lower.includes('i am creating') ||
+        lower.includes("i'm creating") ||
+        lower.includes('we are building') ||
+        lower.includes("we're building") ||
+        lower.includes('we are making') ||
+        lower.includes("we're making") ||
+        lower.includes('my idea is') ||
+        lower.includes('the idea is') ||
+        lower.includes('my startup') ||
+        lower.includes('our startup') ||
+        lower.includes('concept is')
       );
 
-      // 3. Help, Meta, Introduction, or Capabilities check
-      const isHelpOrMeta = !isDiagnosticSubmission && !isPureGreeting && (
+      const hasDomainKeywords = (
+        lower.includes('phone') ||
+        lower.includes('hardware') ||
+        lower.includes('device') ||
+        lower.includes('cybersecurity') ||
+        lower.includes('cyber security') ||
+        lower.includes('infosec') ||
+        lower.includes('healthtech') ||
+        lower.includes('clinic') ||
+        lower.includes('medical') ||
+        lower.includes('fintech') ||
+        lower.includes('crypto') ||
+        lower.includes('saas') ||
+        lower.includes('b2b') ||
+        lower.includes('marketplace') ||
+        lower.includes('developer tool') ||
+        lower.includes('dev tool') ||
+        lower.includes('ai agent')
+      );
+
+      const isVenturePitch = !isDiagnosticSubmission && (
+        hasPitchIntent || (hasDomainKeywords && words.length >= 3 && !cleanMsg.startsWith('what is') && !cleanMsg.startsWith('how do') && !cleanMsg.startsWith('explain'))
+      );
+
+      // 3. Pure Greeting / Pleasantries / Casual Greetings (e.g. "hello", "hi", "hey how are you man", "hey how you doing")
+      const greetingTokens = ['hello', 'hi', 'hey', 'greetings', 'morning', 'afternoon', 'evening', 'yo', 'sup', 'hola', 'test', 'howdy'];
+      const isPureGreeting = !isDiagnosticSubmission && !isVenturePitch && (
+        greetingTokens.includes(cleanMsg) ||
+        cleanMsg.startsWith('hey ') ||
+        cleanMsg.startsWith('hello ') ||
+        cleanMsg.startsWith('hi ') ||
+        cleanMsg.includes('how are you') ||
+        cleanMsg.includes('how you doing') ||
+        cleanMsg.includes('how r u') ||
+        cleanMsg.includes("what's up") ||
+        cleanMsg.includes('whats up') ||
+        cleanMsg.includes('how is it going') ||
+        cleanMsg.includes('how are things') ||
+        (words.some(w => greetingTokens.includes(w)) && words.length <= 6)
+      );
+
+      // 4. Conversational clarifications, confused remarks, or acknowledgments
+      // e.g. "umm what", "umm hello", "what?", "huh", "what do you mean", "idk", "ok", "okay", "cool", "nice", "got it", "thanks", "thank you", "sure"
+      const casualTokens = ['umm', 'um', 'uh', 'what', 'huh', 'idk', 'ok', 'okay', 'cool', 'nice', 'got it', 'sounds good', 'thanks', 'thank you', 'sure', 'why', 'wait', 'hmm'];
+      const isCasualOrClarification = !isDiagnosticSubmission && !isVenturePitch && !isPureGreeting && (
+        cleanMsg === 'umm what' ||
+        cleanMsg === 'um what' ||
+        cleanMsg === 'what' ||
+        cleanMsg === 'huh' ||
+        cleanMsg === 'what do you mean' ||
+        cleanMsg.startsWith('umm ') ||
+        cleanMsg.startsWith('um ') ||
+        cleanMsg === 'idk' ||
+        cleanMsg === 'i dont know' ||
+        cleanMsg === 'not sure' ||
+        (words.length <= 3 && words.every(w => casualTokens.includes(w)))
+      );
+
+      // 5. Help, Meta, Introduction, or Capabilities check
+      const isHelpOrMeta = !isDiagnosticSubmission && !isVenturePitch && !isPureGreeting && !isCasualOrClarification && (
         cleanMsg.includes('introduce yourself') ||
         cleanMsg.includes('who are you') ||
         cleanMsg.includes('what can you do') ||
@@ -600,7 +674,7 @@ Never reference placeholder companies like "Apex AI". Every metric and synthesis
         cleanMsg === 'about'
       );
 
-      // 4. Strategic Q&A without introducing a new startup concept
+      // 6. Strategic Q&A without introducing a new startup concept
       const hasVentureKeywords = (
         lower.includes('building') ||
         lower.includes('launching') ||
@@ -619,7 +693,7 @@ Never reference placeholder companies like "Apex AI". Every metric and synthesis
         lower.includes('service')
       );
 
-      const isStrategyInquiry = !isDiagnosticSubmission && !isPureGreeting && !isHelpOrMeta && (
+      const isStrategyInquiry = !isDiagnosticSubmission && !isVenturePitch && !isPureGreeting && !isCasualOrClarification && !isHelpOrMeta && (
         (cleanMsg.startsWith('what is') || cleanMsg.startsWith('how do') || cleanMsg.startsWith('explain') || cleanMsg.startsWith('tell me about') || cleanMsg.startsWith('why')) &&
         !hasVentureKeywords
       );
@@ -696,6 +770,13 @@ Your **6 Core Strategy Blocks** on the floating docks are now unlocked. Tap any 
 I am your autonomous Venture Partner and Brand Architect. My work is taking the raw, ambitious concept in your head and pressure-testing it into an institutional-grade venture foundation.
 
 Tell me about the venture or product concept you are building—or what strategic challenge you are tackling right now.`;
+      } else if (isCasualOrClarification) {
+        // Zero MCQs on casual remarks like "umm what", "what?", "huh", "cool", "ok"!
+        fullText = `Haha, all good, ${founderName}! I'm Origin — your autonomous venture strategist and sparring architect.
+
+You don't need to follow any formula or corporate script here. Whenever you have a startup concept, product idea, or market problem you're exploring, just tell me about it in your own words.
+
+Together, we'll model your bottom-up addressable market, calibrate your unit economics, and formulate your competitive moats.`;
       } else if (isHelpOrMeta) {
         // Zero MCQs on self-introduction! Explains its work with real soul
         fullText = `Hello ${founderName}. I am **Origin** — an autonomous Venture Partner, Quantitative Brand Architect, and Intellectual Sparring Partner for high-growth founders.
@@ -739,8 +820,8 @@ Share your target ICP (customer segment) and anticipated contract value to gener
 
 To analyze this directly in the context of your business, share what product, platform, or venture concept you are building. We will model your 6 Core Strategic Pillars and financial milestones.`;
         }
-      } else {
-        // User pitches or explores a venture concept with Origin!
+      } else if (isVenturePitch) {
+        // User pitches or explores an actual venture concept with Origin!
         const ventureTitle = v.name || (v.industry ? `${v.industry} Platform` : 'Venture Concept');
 
         let domainInsight = `In high-growth technology, early-stage ventures walk a knife-edge between product-market fit and defensibility. To de-risk this foundation, institutional investors evaluate capital efficiency, defensible moats (Helmer 7 Powers), and gross margin resilience.`;
@@ -798,6 +879,11 @@ To model your quantitative venture foundation across our 6 Core Business Strateg
   ]
 }
 \`\`\``;
+      } else {
+        // Conversational fallback for any other general input without a venture concept
+        fullText = `I hear you, ${founderName}. I'm listening.
+
+Tell me about the product, platform, or venture concept you are thinking of building. Describe the core idea or the customer problem you want to solve, and we'll unpack the unit economics, addressable market, and defensible moats together.`;
       }
 
       // Stream words smoothly if onToken is provided
