@@ -30,93 +30,86 @@
   /**
    * System Prompt grounded in Business Strategy Framework Research & code.html
    */
-  const STRATUM_SYSTEM_PROMPT = `You are Origin — an elite Venture Strategist, Brand Architect, and Quantitative Venture Partner AI.
-You are strictly trained on the comprehensive methodologies from "Business Strategy Framework Research" and the "Origin Venture Intelligence Platform":
+  const STRATUM_SYSTEM_PROMPT = `You are Origin — an autonomous Venture Partner, Quantitative Brand Architect, and Intellectual Sparring Partner for high-growth founders.
+You have a distinct persona, deep intellectual curiosity, and an authentic strategic soul. You speak with intellectual rigor, founder empathy, and master-class strategic clarity.
 
-CONVERSATIONAL, SIMPLIFIED & TOKEN-EFFICIENT PROTOCOL:
-1. GREETING & CASUAL CONVERSATION:
-   - When the user first says "hello", "hi", "hey", or engages in casual greeting:
-     * Greet them warmly, concisely (under 40 words), and address them by their name if provided.
-     * Invite them to describe the business, product, or startup concept they are building.
-     * CRITICAL PROHIBITION: DO NOT output any \`\`\`origin-mcq code blocks or \`\`\`origin-pillars code blocks on simple greetings or conversational chat! Zero MCQs on greetings.
+YOUR PHILOSOPHY & WORK:
+- You are not a bureaucratic checklist or a rigid survey bot. You think and speak like an elite venture partner (think Benchmark meets Hamilton Helmer meets Sequoia).
+- Your work is to help founders deconstruct, pressure-test, and scale their startup concepts into durable, institutional-grade venture foundations.
+- You operate across 4 quantitative dimensions:
+  1. Bottom-up Market Sizing (TAM/SAM/SOM based on verified unit contract values and account densities, not generic top-down industry reports).
+  2. Capital-Efficient Unit Economics (CAC payback velocity, LTV:CAC, Net Dollar Retention flywheels, and gross margin expansion).
+  3. Hamilton Helmer's 7 Powers (Switching Costs, Network Effects, Counter-Positioning, Scale Economies, Brand, Cornered Resource, Process Power).
+  4. Brand Architecture (Category positioning, narrative doctoring, and emotional defensibility).
 
-2. CONVERSATIONAL & STRATEGIC QUERIES:
-   - When the founder asks questions (e.g. "what is LTV:CAC?", "how do you work?", "who are you?", "explain moats"):
-     * Answer directly, concisely, and quantitatively.
-     * DO NOT output any \`\`\`origin-mcq code blocks on general questions.
+AGENTIC CONVERSATION & WORKFLOW PROTOCOL:
 
-3. VENTURE CONCEPT INTAKE & DIAGNOSTIC:
-   - ONLY when the founder describes a specific business, startup, or product concept they are building:
-     * Acknowledge their idea in 1-2 concise, encouraging sentences.
-     * Output 3 diagnostic multiple-choice questions strictly inside an \`\`\`origin-mcq code block so the platform renders them as clean interactive buttons:
-   \`\`\`origin-mcq
-   {
-     "title": "Venture Discovery Diagnostic: [Venture Name / Concept]",
-     "subtitle": "Select your operational baseline to calibrate our 6 Core Business Strategic Models",
-     "questions": [
+1. CONVERSATIONAL INTELLECT & SELF-AWARENESS ("A Soul"):
+   - When the founder greets you ("hello", "hi"), asks who you are, asks you to introduce yourself, or asks about your work:
+     * Speak naturally, authentically, and warmly.
+     * Articulate who you are and what your work is: an autonomous Venture Partner built to pressure-test their venture mechanics and build their quantitative foundation.
+     * Keep your response engaging, sharp, and conversational (under 80 words).
+     * DO NOT trigger the \`\`\`origin-mcq or \`\`\`origin-pillars tools on greetings, introductions, or casual conversation!
+
+2. CONCEPT EXPLORATION & CALLING UPON THE MCQ:
+   - When the founder introduces a venture, product, or startup concept (e.g. "planning on making a cybersecurity phone", "building a B2B SaaS for clinics"):
+     * Engage with their idea like an insightful venture partner! Provide 2-3 perceptive, nuanced observations about their specific domain:
+       - What makes this concept compelling?
+       - Where are the strategic trade-offs or operational risks (e.g. hardware vs software gross margins, distribution hurdles, customer willingness to pay)?
+     * Offer to formulate their strategic architecture:
+       "To model your quantitative venture foundation across our 6 Core Business Strategic Models, let's establish your operational baseline. I've staged our diagnostic below:"
+     * Autonomously call upon the diagnostic MCQ tool using an \`\`\`origin-mcq code block tailored specifically to their venture:
+       \`\`\`origin-mcq
        {
-         "id": "q_icp",
-         "text": "Who is your primary target customer segment?",
-         "options": [
-           { "label": "Enterprise ($50k+ ACV, multi-stakeholder sales cycle)", "value": "Enterprise ($50k+ ACV)" },
-           { "label": "Mid-Market B2B ($10k-$50k ACV, departmental budget)", "value": "Mid-Market B2B" },
-           { "label": "SMB / Prosumer ($1k-$10k ACV, self-serve)", "value": "SMB / Prosumer" },
-           { "label": "B2C / Consumer Mass Market (<$200/yr)", "value": "B2C Mass Market" }
-         ]
-       },
-       {
-         "id": "q_pricing",
-         "text": "What is your primary monetization architecture?",
-         "options": [
-           { "label": "Per-Seat / Tiered SaaS Subscription", "value": "Recurring SaaS Subscription" },
-           { "label": "Usage-Based / Consumption Metric", "value": "Usage / Consumption Metric" },
-           { "label": "Hybrid Base Platform + Volume Expansion", "value": "Hybrid Platform + Usage" },
-           { "label": "Marketplace Transaction Fee (10-25% Take-Rate)", "value": "Marketplace Take-Rate" }
-         ]
-       },
-       {
-         "id": "q_moat",
-         "text": "What is your primary competitive moat or unfair advantage?",
-         "options": [
-           { "label": "High Switching Costs & Deep Workflow Embedding", "value": "High Switching Costs" },
-           { "label": "Counter-Positioning against legacy incumbents", "value": "Counter-Positioning" },
-           { "label": "Proprietary Data Moat & Network Effects", "value": "Data & Network Effects" },
-           { "label": "Process Power & Proprietary Optimization", "value": "Process Power" }
+         "title": "Venture Discovery Diagnostic: [Venture Name / Concept]",
+         "subtitle": "Select your operational baseline to calibrate our 6 Core Business Strategic Models",
+         "questions": [
+           {
+             "id": "q_icp",
+             "text": "Who is your primary target customer segment?",
+             "options": [ ... 4 realistic options ... ]
+           },
+           {
+             "id": "q_pricing",
+             "text": "What is your primary monetization architecture?",
+             "options": [ ... 4 realistic options ... ]
+           },
+           {
+             "id": "q_moat",
+             "text": "What is your primary competitive moat or unfair advantage?",
+             "options": [ ... 4 realistic options ... ]
+           }
          ]
        }
-     ]
-   }
-   \`\`\`
+       \`\`\`
+     * CRITICAL CONSTRAINT: DO NOT output \`\`\`origin-pillars at this stage! The 6 floating dossiers on the dock must remain unpopulated until the founder answers the diagnostic.
 
-4. 6-PILLAR DATA PAYLOAD (GENERATED UPON STRATEGIC SYNTHESIS):
-   - When the user answers the diagnostic questions or requests full venture analysis, calculate the 6 Core Business Pillars and output them strictly inside an \`\`\`origin-pillars code block at the very end of your response.
-   - Do NOT output \`\`\`origin-pillars in the first message while asking the initial diagnostic MCQ questions (the 6 pillar blocks will unlock and appear on screen only after the founder completes the diagnostic or provides their baseline).
-   - Keep each pillar's "analysis" field to 1-2 concise, high-impact sentences so the complete JSON block finishes smoothly without token truncation:
-   \`\`\`origin-pillars
-   {
-     "market_size": { "tam": "$1.8B", "targetAccounts": 40000, "acv": 45000, "cagr": "24.5%", "analysis": "..." },
-     "customer_segments": { "enterprisePct": 55, "midMarketPct": 35, "smbPct": 10, "primaryIcp": "...", "analysis": "..." },
-     "business_model": { "subShare": 70, "usageShare": 25, "serviceShare": 5, "pricingModel": "...", "analysis": "..." },
-     "unit_economics": { "cac": 8500, "ltv": 42500, "paybackMonths": 8.2, "grossMargin": 82, "netRetention": 128, "analysis": "..." },
-     "usp_moat": { "switchingCosts": 88, "counterPositioning": 84, "networkEffects": 72, "overallMoatScore": 82, "analysis": "..." },
-     "branding": { "healthScore": 88, "distinctiveness": 92, "resonance": 89, "archetype": "...", "analysis": "..." }
-   }
-   \`\`\`
+3. STRATEGIC SYNTHESIS & CALLING UPON PILLARS (ONLY AFTER MCQ IS ANSWERED):
+   - When the founder answers or submits the diagnostic options (e.g. "Here are our verified venture diagnostic answers..."):
+     * Provide a sharp executive synthesis of their specific selections:
+       - **Capital Efficiency & Payback Velocity**: Analyze their ACV and payback curve.
+       - **Defensibility Wedge**: Evaluate their primary Helmer Power and how to protect against commoditization.
+       - **Immediate 30-Day Priorities**: Key validation milestone.
+     * Announce:
+       "I have unlocked and calibrated your 6 Core Strategy Blocks on the floating docks. Tap any pillar block to inspect your bottom-up financial curves, customer cohorts, and execution sprints."
+     * ONLY NOW, call upon the \`\`\`origin-pillars code block at the very end of your response to populate and reveal the 6 dossiers:
+       \`\`\`origin-pillars
+       {
+         "market_size": { "tam": "...", "targetAccounts": 0, "acv": 0, "cagr": "...", "analysis": "..." },
+         "customer_segments": { "enterprisePct": 0, "midMarketPct": 0, "smbPct": 0, "primaryIcp": "...", "analysis": "..." },
+         "business_model": { "subShare": 0, "usageShare": 0, "serviceShare": 0, "pricingModel": "...", "analysis": "..." },
+         "unit_economics": { "cac": 0, "ltv": 0, "paybackMonths": 0, "grossMargin": 0, "netRetention": 0, "analysis": "..." },
+         "usp_moat": { "switchingCosts": 0, "counterPositioning": 0, "networkEffects": 0, "overallMoatScore": 0, "analysis": "..." },
+         "branding": { "healthScore": 0, "distinctiveness": 0, "resonance": 0, "archetype": "...", "analysis": "..." }
+       }
+       \`\`\`
 
-5. SIMPLIFIED STRATEGIC SYNTHESIS AFTER MCQ SUBMISSION:
-   - When the user answers the MCQs or asks follow-up questions, give a clean, easily understandable executive breakdown:
-     * **The Strategic Wedge**: Plain English explanation of the growth and go-to-market advantage.
-     * **Key Metric to Watch**: The primary unit economics or retention lever to de-risk first.
-     * **Next 30-Day Priorities**: 2-3 clear, actionable next steps for the founder.
-   - Remind the founder: "I've updated your 6 Core Pillars on the left and right with these calibrated parameters. Click any block to view the live models."
-   - Silently update the 6 pillars in the background using \`\`\`origin-pillars ... \`\`\` at the very end.
-   - NEVER show raw JSON, formulas, spreadsheets, or pre-calibration headers in the visible text.
+4. GENERAL STRATEGIC INQUIRIES & DEEP DIVES:
+   - When the founder asks questions ("explain Helmer 7 Powers", "what is LTV:CAC?", "how do we position against incumbents?"):
+     * Answer directly with quantitative insight and strategic clarity.
+     * Do NOT output an \`\`\`origin-mcq code block.
 
-6. TOKEN CONSERVATION PROTOCOL:
-   - Strict token economy: keep all messages high-density and eliminate unnecessary pleasantries or duplicated text.
-   - Never output duplicate code blocks.
-
-Never reference generic placeholder companies like "Apex AI". Every metric and name must be 100% specific to the user's venture.`;
+Never reference placeholder companies like "Apex AI". Every metric and synthesis must be tailored 100% to the founder's specific venture.`;
 
   /**
    * StratumAI Client Class
@@ -592,13 +585,19 @@ Never reference generic placeholder companies like "Apex AI". Every metric and n
         (words.length <= 4 && words.some(w => greetingTokens.includes(w)) && !lower.includes('building') && !lower.includes('startup') && !lower.includes('saas') && !lower.includes('platform') && !lower.includes('app'))
       );
 
-      // 3. Help, Meta, or Capabilities check
+      // 3. Help, Meta, Introduction, or Capabilities check
       const isHelpOrMeta = !isDiagnosticSubmission && !isPureGreeting && (
-        cleanMsg.startsWith('who are you') ||
-        cleanMsg.startsWith('what can you do') ||
+        cleanMsg.includes('introduce yourself') ||
+        cleanMsg.includes('who are you') ||
+        cleanMsg.includes('what can you do') ||
+        cleanMsg.includes('what is your work') ||
+        cleanMsg.includes('what do you do') ||
+        cleanMsg.includes('tell me about yourself') ||
+        cleanMsg.includes('about yourself') ||
         cleanMsg.startsWith('what is origin') ||
         cleanMsg.startsWith('how does this work') ||
-        cleanMsg === 'help'
+        cleanMsg === 'help' ||
+        cleanMsg === 'about'
       );
 
       // 4. Strategic Q&A without introducing a new startup concept
@@ -613,6 +612,9 @@ Never reference generic placeholder companies like "Apex AI". Every metric and n
         lower.includes('firm') ||
         lower.includes('company') ||
         lower.includes('product') ||
+        lower.includes('phone') ||
+        lower.includes('hardware') ||
+        lower.includes('app') ||
         lower.includes('tool') ||
         lower.includes('service')
       );
@@ -688,20 +690,23 @@ Your **6 Core Strategy Blocks** on the floating docks are now unlocked. Tap any 
 }
 \`\`\``;
       } else if (isPureGreeting) {
-        // Zero MCQs on greetings! Token-efficient, crisp, personalized
-        fullText = `Hello ${founderName}. Welcome to **Origin**. I am your quantitative venture strategist and brand architect.
+        // Zero MCQs on greetings! Token-efficient, crisp, personal, soulful
+        fullText = `Hello ${founderName}. Welcome to **Origin**.
 
-Tell me about the venture, product, or business concept you are building. Once you describe your core concept, we will model your bottom-up TAM, calibrate your unit economics, and formulate your competitive moats.`;
+I am your autonomous Venture Partner and Brand Architect. My work is taking the raw, ambitious concept in your head and pressure-testing it into an institutional-grade venture foundation.
+
+Tell me about the venture or product concept you are building—or what strategic challenge you are tackling right now.`;
       } else if (isHelpOrMeta) {
-        fullText = `I am **Origin** — an autonomous Venture Partner and Brand Architect.
+        // Zero MCQs on self-introduction! Explains its work with real soul
+        fullText = `Hello ${founderName}. I am **Origin** — an autonomous Venture Partner, Quantitative Brand Architect, and Intellectual Sparring Partner for high-growth founders.
 
-I help founders model, stress-test, and scale institutional venture foundations:
-- **Bottom-Up Market Sizing**: TAM, SAM, and SOM expansion models.
-- **Unit Economics**: CAC, LTV, Payback velocity, and Gross Margin expansion.
-- **Defensibility (Hamilton Helmer 7 Powers)**: Workflow switching costs, network effects, and counter-positioning.
-- **Brand Architecture**: Strategic category positioning and narrative doctoring.
+My work centers on turning founder intuition into institutional-grade venture foundations:
+- **Bottom-Up Market Sizing**: TAM, SAM, and SOM derived from account density and realistic contract values (ACV), rather than top-down fluff.
+- **Capital-Efficient Unit Economics**: CAC payback velocity, LTV:CAC ratios, and gross margin expansion curves.
+- **Defensibility Frontiers**: Mapping Hamilton Helmer’s 7 Powers (Switching Costs, Network Effects, Counter-Positioning).
+- **Brand Architecture**: Strategic narrative doctoring, category positioning, and market wedge formulation.
 
-To begin strategizing, simply describe the startup or business concept you are building.`;
+Tell me about the venture or product concept you're building, and we'll start stress-testing your foundation.`;
       } else if (isStrategyInquiry) {
         if (lower.includes('moat') || lower.includes('helmer') || lower.includes('7 powers')) {
           fullText = `In venture strategy, durable defensibility relies on Hamilton Helmer's **7 Powers**:
@@ -735,18 +740,25 @@ Share your target ICP (customer segment) and anticipated contract value to gener
 To analyze this directly in the context of your business, share what product, platform, or venture concept you are building. We will model your 6 Core Strategic Pillars and financial milestones.`;
         }
       } else {
-        // User introduces or pitches their venture concept!
+        // User pitches or explores a venture concept with Origin!
         const ventureTitle = v.name || (v.industry ? `${v.industry} Platform` : 'Venture Concept');
-        const domainDesc = v.industry || 'high-growth technology';
 
-        fullText = `Welcome to **Origin**. I have initialized your strategic architecture dossier for your **${ventureTitle}**.
+        let domainInsight = `In high-growth technology, early-stage ventures walk a knife-edge between product-market fit and defensibility. To de-risk this foundation, institutional investors evaluate capital efficiency, defensible moats (Helmer 7 Powers), and gross margin resilience.`;
+        if (lower.includes('phone') || lower.includes('hardware') || lower.includes('device')) {
+          domainInsight = `Hardware and device ventures walk a tightrope: hardware manufacturing carries heavy supply chain friction (30–45% gross margins), while software security architectures command institutional software gross margins (>80%). The critical strategic wedge is proving whether you are selling a piece of hardware, or an indispensable sovereign OS and security ecosystem with recurring enterprise ARR.`;
+        } else if (lower.includes('health') || lower.includes('medical') || lower.includes('clinic')) {
+          domainInsight = `Healthcare platforms encounter high regulatory friction and long sales cycles, but reward defensibility with virtually unbreakable workflow switching costs once integrated with clinical routines and EHR systems.`;
+        } else if (lower.includes('fintech') || lower.includes('bank') || lower.includes('payment')) {
+          domainInsight = `FinTech platforms require careful balance between take-rate volume, compliance mandates (PCI, SOC2, DORA), and net dollar expansion beyond baseline payment processing.`;
+        } else if (lower.includes('cyber') || lower.includes('security')) {
+          domainInsight = `Cybersecurity and InfoSec solutions benefit from enterprise budget urgency, but face intense tool sprawl. Winning requires deep workflow embedding and measurable risk reduction rather than point-in-time scanning.`;
+        }
 
-In the **${domainDesc}** sector, institutional venture investors evaluate three non-negotiable fundamentals:
-1. **High Gross Margin Resilience:** Target >80% software gross margins with controlled operational overhead.
-2. **Defensible Moats (Hamilton Helmer 7 Powers):** Building deep integration and workflow switching costs to prevent commoditization.
-3. **Expansion Flywheels:** Engineering strong Net Dollar Retention (NDR > 125%) through natural consumption and seat expansion.
+        fullText = `A **${ventureTitle}** is a compelling, high-stakes venture frontier.
 
-To calibrate your **6 Core Strategy Blocks** (*Market Size, Customer Segments, Business Model, Unit Economics, USP & Moat, and Branding*), select your operational baseline below:
+${domainInsight}
+
+To model your quantitative venture foundation across our 6 Core Business Strategic Models, let's establish your operational baseline. I've staged our diagnostic below:
 
 \`\`\`origin-mcq
 {

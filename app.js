@@ -893,7 +893,7 @@ function extractAndSyncPillars(rawText, mcqAnswers) {
 
   const parsedData = jsonCandidate ? repairAndParsePillarJson(jsonCandidate) : null;
 
-  // If this message contains the active MCQ diagnostic questions, stage the baseline data but DO NOT reveal docks yet
+  // 1. If this message contains the active MCQ diagnostic questions, do NOT reveal docks!
   if (rawText.includes('origin-mcq')) {
     if (parsedData && typeof OriginPillars.stageIntakeData === 'function') {
       OriginPillars.stageIntakeData(parsedData);
@@ -901,10 +901,16 @@ function extractAndSyncPillars(rawText, mcqAnswers) {
     return;
   }
 
-  // If this is a post-diagnostic synthesis response:
-  // Synchronize incoming data over staged baseline, calibrate from MCQ, and reveal the floating docks!
-  if (parsedData || mcqAnswers || (typeof OriginPillars.getStagedData === 'function' && OriginPillars.getStagedData())) {
-    OriginPillars.syncPillarsFromAI(parsedData || {}, mcqAnswers);
+  // 2. Strict Check: Was this response triggered by a diagnostic submission?
+  const isDiagnosticSubmission = typeof mcqAnswers === 'string' 
+    ? mcqAnswers.includes('verified venture diagnostic answers')
+    : (typeof mcqAnswers === 'object' && mcqAnswers !== null && Object.keys(mcqAnswers).length > 0 && !Array.isArray(mcqAnswers));
+
+  const hasOriginPillarsTag = rawText.includes('origin-pillars') || (parsedData && (parsedData.market_size || parsedData.unit_economics));
+
+  // 3. ONLY synchronize and reveal pillars if the AI explicitly called upon origin-pillars OR this is a diagnostic submission!
+  if (hasOriginPillarsTag || isDiagnosticSubmission) {
+    OriginPillars.syncPillarsFromAI(parsedData || {}, isDiagnosticSubmission ? mcqAnswers : null);
   }
 }
 
@@ -1484,9 +1490,13 @@ async function submitUserMessage(overrideText = null) {
             typingMountEl.style.display = 'none';
           }
         } else if (isBackgroundActive && displayRaw) {
-          // Visible prose finished, MCQ is streaming in background
+          // Visible prose finished, background tool payload is streaming
           typingMountEl.style.display = 'flex';
-          typingTextEl.textContent = 'Origin is typing diagnostic questions...';
+          if (raw.includes('origin-pillars') || raw.includes('"market_size"') || raw.includes('"unit_economics"')) {
+            typingTextEl.textContent = 'Origin is calibrating 6 Core Strategy Blocks...';
+          } else {
+            typingTextEl.textContent = 'Origin is formulating diagnostic questions...';
+          }
           contentContainer.appendChild(typingMountEl);
         } else if (displayRaw) {
           // Actively streaming prose words
@@ -1532,9 +1542,7 @@ async function submitUserMessage(overrideText = null) {
     }
 
     // 5. Cleanly remove typing indicator on completion
-    if (typingMountEl) {
-      typingMountEl.remove();
-    }
+    assistantMsgEl.querySelectorAll('.assistant-typing-mount').forEach(el => el.remove());
     sanitizeRenderedMessageContainer(contentContainer);
 
     // Render Interactive Charts ONLY if AI explicitly emitted them
@@ -1580,6 +1588,12 @@ async function submitUserMessage(overrideText = null) {
     scrollToBottom();
   }
 }
+
+function triggerStarterPrompt(text) {
+  submitUserMessage(text);
+}
+window.submitUserMessage = submitUserMessage;
+window.triggerStarterPrompt = triggerStarterPrompt;
 
 // Render User Message HTML
 function renderUserMessage(text) {
