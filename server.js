@@ -64,18 +64,37 @@ function getSessionUser(req) {
     const match = req.headers.cookie.match(/(?:origin_session|stratum_session)=([^;]+)/);
     if (match) token = match[1];
   }
-  if (!token) return null;
-  return db.getUserBySession(token);
+  if (token) {
+    const user = db.getUserBySession(token);
+    if (user) return user;
+  }
+
+  // Cross-domain or client token fallback via X-User-Email header
+  const userEmail = req.headers['x-user-email'];
+  if (userEmail && typeof userEmail === 'string' && userEmail.includes('@')) {
+    let user = db.getUserByEmail(userEmail);
+    if (!user) {
+      const name = req.headers['x-user-name'] || userEmail.split('@')[0];
+      user = db.findOrCreateUserByGoogle({
+        email: userEmail,
+        name: decodeURIComponent(name),
+        sub: userEmail
+      });
+    }
+    return user;
+  }
+
+  return null;
 }
 
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
 
-  // CORS headers
+  // CORS headers for local and remote cross-domain requests
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-Email, X-User-Name');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);

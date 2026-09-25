@@ -110,6 +110,12 @@ function getUserBySession(token) {
   return user || null;
 }
 
+function getUserByEmail(email) {
+  if (!email) return null;
+  const db = readDb();
+  return db.users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase().trim()) || null;
+}
+
 function deleteSession(token) {
   if (!token) return;
   const db = readDb();
@@ -192,6 +198,7 @@ module.exports = {
   findOrCreateUserByGoogle,
   createSession,
   getUserBySession,
+  getUserByEmail,
   deleteSession,
   getUserChats,
   getChatById,

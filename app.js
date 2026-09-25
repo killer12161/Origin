@@ -445,6 +445,15 @@ function saveLocalUserChats(chatsObj) {
   }
 }
 
+function getApiHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  if (currentUser && currentUser.email) {
+    headers['X-User-Email'] = currentUser.email;
+    headers['X-User-Name'] = encodeURIComponent(currentUser.name || 'Founder');
+  }
+  return headers;
+}
+
 async function loadUserChats() {
   // 1. Immediately render from Per-Account LocalStorage
   const localChats = getLocalUserChats();
@@ -454,7 +463,9 @@ async function loadUserChats() {
   // 2. If API_BASE or Oracle Server is reachable, sync and merge remote chats
   if (API_BASE) {
     try {
-      const resp = await fetch(`${API_BASE}/api/chats`);
+      const resp = await fetch(`${API_BASE}/api/chats`, {
+        headers: getApiHeaders()
+      });
       if (resp.ok) {
         const remoteData = await resp.json();
         if (remoteData && (Array.isArray(remoteData.pinned) || Array.isArray(remoteData.recents))) {
@@ -541,7 +552,9 @@ async function selectChat(chatId) {
     // 2. Fallback to API if not in local store
     if (!chat && API_BASE) {
       try {
-        const resp = await fetch(`${API_BASE}/api/chats/${chatId}`);
+        const resp = await fetch(`${API_BASE}/api/chats/${chatId}`, {
+          headers: getApiHeaders()
+        });
         if (resp.ok) {
           chat = await resp.json();
         }
@@ -626,7 +639,10 @@ async function handleTogglePin(chatId, e) {
     }
 
     if (API_BASE) {
-      fetch(`${API_BASE}/api/chats/${chatId}/pin`, { method: 'POST' }).catch(() => {});
+      fetch(`${API_BASE}/api/chats/${chatId}/pin`, { 
+        method: 'POST',
+        headers: getApiHeaders()
+      }).catch(() => {});
     }
   } catch (err) {
     console.error('Error toggling pin:', err);
@@ -650,7 +666,10 @@ async function handleDeleteChat(chatId, e) {
     showToast('Conversation deleted');
 
     if (API_BASE) {
-      fetch(`${API_BASE}/api/chats/${chatId}`, { method: 'DELETE' }).catch(() => {});
+      fetch(`${API_BASE}/api/chats/${chatId}`, { 
+        method: 'DELETE',
+        headers: getApiHeaders()
+      }).catch(() => {});
     }
   } catch (err) {
     console.error('Error deleting chat:', err);
@@ -692,7 +711,7 @@ async function saveCurrentChatToServer() {
     try {
       await fetch(`${API_BASE}/api/chats`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getApiHeaders(),
         body: JSON.stringify(chatRecord)
       });
     } catch (netErr) {
