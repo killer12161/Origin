@@ -67,7 +67,7 @@ function findOrCreateUserByGoogle(profile) {
       id: 'usr_' + crypto.randomBytes(8).toString('hex'),
       googleId: profile.sub,
       email: profile.email,
-      name: profile.name || 'Stratum Strategist',
+      name: profile.name || 'Origin Strategist',
       picture: profile.picture || '',
       createdAt: now,
       lastLoginAt: now

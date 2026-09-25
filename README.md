@@ -1,8 +1,8 @@
-# Stratum Venture Intelligence (Origin)
+# Origin
 
 > **Institutional-Grade AI Startup Evaluator & Strategic Intelligence Platform**
 
-Stratum (Origin) is an advanced venture intelligence platform designed to stress-test early-stage business hypotheses, evaluate defensibility moats, analyze bottom-up market sizing, and forecast unit economics curves using foundational strategic frameworks.
+Origin is an advanced venture intelligence platform designed to stress-test early-stage business hypotheses, evaluate defensibility moats, analyze bottom-up market sizing, and forecast unit economics curves using foundational strategic frameworks.
 
 ---
 
@@ -22,9 +22,9 @@ Stratum (Origin) is an advanced venture intelligence platform designed to stress
 ## 🔒 Google OAuth Compliance & Verification URLs
 For Google Cloud Console OAuth 2.0 Client & Brand Verification:
 
-- **Application Home Page:** `https://killer12161.github.io/stratum-venture-intelligence/`
-- **Application Privacy Policy:** `https://killer12161.github.io/stratum-venture-intelligence/privacy.html`
-- **Application Terms of Service:** `https://killer12161.github.io/stratum-venture-intelligence/terms.html`
+- **Application Home Page:** `https://killer12161.github.io/Origin/`
+- **Application Privacy Policy:** `https://killer12161.github.io/Origin/privacy.html`
+- **Application Terms of Service:** `https://killer12161.github.io/Origin/terms.html`
 - **Authorized Domain:** `github.io`
 - **Developer / Support Contact:** `aneeshpoddar63@gmail.com`
 
@@ -34,8 +34,8 @@ For Google Cloud Console OAuth 2.0 Client & Brand Verification:
 
 ```bash
 # Clone the repository
-git clone https://github.com/killer12161/stratum-venture-intelligence.git
-cd stratum-venture-intelligence
+git clone https://github.com/killer12161/Origin.git
+cd Origin
 
 # Run the platform (Zero external dependencies - pure Node.js)
 npm start

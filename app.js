@@ -1,5 +1,5 @@
 /**
- * Stratum Venture Intelligence Platform - Real Interactive Application
+ * Origin Venture Intelligence Platform - Real Interactive Application
  * Integrates with stratum-sdk.js & NVIDIA NIM (Nemotron 3 Ultra 550B)
  * Supports Google OAuth 2.0 Identity & Persistent Chat Storage (SQLite/JSON)
  */

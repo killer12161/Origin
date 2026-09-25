@@ -5,7 +5,7 @@
 ---
 
 ## 1. Project Overview & Identity
-- **Project Name:** Origin (also branded as Stratum / Stitch Venture Intelligence Platform)
+- **Project Name:** Origin
 - **Core Value Proposition:** An institutional-grade Venture Capital AI platform and Startup Evaluator. It assesses venture hypotheses, market sizing, defensibility moats, customer segments, and financial payback curves using foundational strategic frameworks (Hamilton Helmer's 7 Powers, Michael Porter's Competitive Advantage, Clayton Christensen's Disruptive Innovation, etc.).
 - **Primary AI Backbone:** NVIDIA NIM API utilizing **NVIDIA Nemotron-3 Ultra 550B** (primary reasoning model) with automatic fallback to **Nemotron-3 Super 120B** and **Llama-3.2-11B-Vision**.
 

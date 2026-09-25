@@ -1,9 +1,9 @@
 /**
- * Stratum AI SDK - Venture & Brand Intelligence Engine
- * Built for Stratum Intelligence Platform
+ * Origin AI SDK - Venture & Brand Intelligence Engine
+ * Built for Origin Intelligence Platform
  * Integrates with NVIDIA NIM (Nemotron 3 Ultra 550B / Super 120B / Llama 3.2)
- * Embeds full "Business Strategy Framework Research" & "Stratum Venture Intelligence"
- * Supports dynamic founder intake, diagnostic interview, dynamic tool execution, and 3-Pillar Triad synthesis.
+ * Embeds full "Business Strategy Framework Research" & "Origin Venture Intelligence"
+ * Supports dynamic founder intake, diagnostic interview, dynamic tool execution, and 6-Pillar synthesis.
  */
 
 (function (global, factory) {
@@ -505,8 +505,8 @@ Never reference generic placeholder companies like "Apex AI". Every metric and n
           reasoningText = data.choices?.[0]?.message?.reasoning_content || '';
         }
       } catch (err) {
-        console.error('Stratum API request error:', err);
-        responseText = `⚠️ **Error connecting to Stratum Intelligence OS:** ${err.message}. Please verify the server is running on http://localhost:3000.`;
+        console.error('Origin API request error:', err);
+        responseText = `⚠️ **Error connecting to Origin Intelligence OS:** ${err.message}. Please verify the server is running on http://localhost:3000.`;
       }
 
       // Extract chart code blocks produced by the AI
